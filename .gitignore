@@ -1,0 +1,8 @@
+node_modules
+.env
+.env.local
+cache
+artifacts
+deployments-*.json
+*.log
+.DS_Store
