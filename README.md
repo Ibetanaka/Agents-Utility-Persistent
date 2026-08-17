@@ -1,209 +1,173 @@
-# Agents Utility Persistent
-The reputation and economic safety layer for AI agents.AUP measures AI agent utility, efficiency, reliability, andcost performance to help users make safer and more economicalagent execution decisions.
+# Agents Utility Persistent (AUP)
 
+**The reputation and economic safety layer for AI agents.**
 
+AUP measures AI agent **utility, efficiency, reliability, and cost performance**, then converts it into a transparent on-chain **AUP Score (0–100)**.  
+This helps users make safer and more economical decisions before executing an agent.
 
+> Status: **MVP — Ready for Base Sepolia & Base Mainnet**
 
-# AUP — Agents Utility Persistent
-
-The reputation and economic safety layer for AI agents.
-
-AUP measures AI agent utility, efficiency, reliability, and
-cost performance to help users make safer and more economical
-agent execution decisions.
+---
 
 ## Why AUP?
 
-AI agents can consume unpredictable resources and costs.
-Users need a reliable way to evaluate an agent before execution.
+AI agents can consume unpredictable resources and costs.  
+Users need a reliable, on-chain way to evaluate an agent **before** execution.
 
-AUP provides an on-chain reputation layer that turns agent
-performance into a transparent AUP Score.
-
-## Core Features
+AUP provides:
 
 - Agent Registry
 - On-chain Reputation
 - Utility Score
 - Cost Efficiency Score
 - Reliability Score
-- Agent Risk Assessment
-- Spending Guard
-- Verifiable Agent Performance
+- Spending Guard (budget & risk limits)
+- Anti-manipulation protection
 
-## AUP Score
+---
 
-AUP Score evaluates an agent from 0–100 based on:
+## Smart Contracts
 
-- Utility
-- Efficiency
-- Reliability
-- Reputation
+| Contract              | Description                                      |
+|-----------------------|--------------------------------------------------|
+| `AUPRegistry.sol`     | Register agents (ID, address, owner, category)   |
+| `AUPReputation.sol`   | Record executions and calculate AUP Score        |
+| `AUPGuard.sol`        | User-configurable spending & risk protection     |
+
+### AUP Score Formula
+
+AUP Score = (Utility × 40%) + (Efficiency × 30%) + (Reliability × 20%) + (Reputation × 10%)
+
+- All component scores are normalized to **0–100**
+- New agents receive a cold-start penalty until they complete at least 3 tasks
+
+---
 
 ## Architecture
 
 User
- ↓
-AUP Registry
- ↓
-Agent Evaluation
- ↓
-AUP Reputation Contract
- ↓
-AUP Score
- ↓
-Risk & Cost Assessment
- ↓
-Spending Guard
+│
+▼
+AUP Registry          ← register agent
+│
+▼
+Agent Executes Task
+│
+├─ Result
+├─ Cost
+└─ Utility feedback
+│
+▼
+AUP Reputation        ← recordExecution()
+│
+▼
+AUP Score (0-100)
+│
+▼
+AUP Guard             ← canExecute() → ALLOW / BLOCK
 
-## Smart Contracts
 
-- AUPRegistry.sol
-- AUPReputation.sol
-- AUPGuard.sol
+---
 
-## Goal
+## Quick Start
 
-AUP aims to become an economic reputation and safety
-infrastructure for autonomous AI agents.
+```bash
+git clone https://github.com/Ibetanaka/Agents-Utility-Persistent.git
+cd Agents-Utility-Persistent
+npm install
 
-## Status
 
-MVP — In Development
+Deploy to Base
+1. Setup Environment
 
-## License
+cp .env.example .env
 
+Edit the .env file:
+PRIVATE_KEY=0xYourPrivateKey
+BASE_SEPOLIA_RPC_URL=https://sepolia.base.org
+BASE_RPC_URL=https://mainnet.base.org
+BASESCAN_API_KEY=YourBasescanApiKey   # optional
+
+
+2. Compile
+
+npx hardhat compile
+
+
+3. Deploy to Base Sepolia (Testnet)
+
+npx hardhat run scripts/deploy.js --network base-sepolia
+
+
+4. Deploy to Base Mainnet
+
+npx hardhat run scripts/deploy.js --network base
+
+After deployment, contract addresses will be saved to deployments-base-sepolia.json or deployments-base.json.
+
+
+5. Verify on Basescan (Optional)
+
+npx hardhat verify --network base-sepolia <REGISTRY_ADDRESS>
+npx hardhat verify --network base-sepolia <REPUTATION_ADDRESS> <REGISTRY_ADDRESS>
+npx hardhat verify --network base-sepolia <GUARD_ADDRESS> <REGISTRY_ADDRESS> <REPUTATION_ADDRESS>
+
+
+How to Use After Deployment:
+
+1. Register an Agent
+
+uint256 agentId = registry.registerAgent(agentAddress, "Research");
+
+2. Authorize an Evaluator (owner only)
+
+reputation.setEvaluator(evaluatorAddress, true);
+
+3. Record an Execution (evaluators only)
+
+reputation.recordExecution(
+    agentId,
+    executionId,   // unique bytes32
+    true,          // success
+    20000,         // cost
+    92             // utility score 0-100
+);
+
+
+4. User configures Guard
+
+guard.configureGuard(
+    1000000,   // maxBudget
+    50000,     // maxCostPerTask
+    70         // minAupScore
+);
+
+5. Check before execution
+
+(bool allowed, string memory reason) = guard.canExecute(user, agentId, estimatedCost);
+
+
+
+Project Structure
+
+├── contracts/
+│   ├── AUPRegistry.sol
+│   ├── AUPReputation.sol
+│   └── AUPGuard.sol
+├── scripts/
+│   └── deploy.js
+├── hardhat.config.js
+├── package.json
+├── .env.example
+└── README.md
+
+
+License
 MIT
 
 
-## AUP MVP ARCHITECTURE
 
+Goal: Become the economic reputation and safety infrastructure for autonomous AI agents on Base and beyond.
 
-                    ┌──────────────────┐
-                    │      USER        │
-                    └────────┬─────────┘
-                             │
-                     Request AI Agent
-                             │
-                             ▼
-                    ┌──────────────────┐
-                    │   AUP Registry   │
-                    │                  │
-                    │ Agent ID         │
-                    │ Agent Address    │
-                    │ Category         │
-                    └────────┬─────────┘
-                             │
-                             ▼
-                    ┌──────────────────┐
-                    │  Agent Executes  │
-                    │      Task        │
-                    └────────┬─────────┘
-                             │
-                 ┌───────────┼───────────┐
-                 ▼           ▼           ▼
-              Result       Cost      Feedback
-                 │           │           │
-                 └───────────┼───────────┘
-                             ▼
-                    ┌──────────────────┐
-                    │ AUP Evaluator    │
-                    │                  │
-                    │ Utility          │
-                    │ Efficiency       │
-                    │ Reliability      │
-                    └────────┬─────────┘
-                             │
-                             ▼
-                    ┌──────────────────┐
-                    │ AUP Reputation   │
-                    │    Contract      │
-                    └────────┬─────────┘
-                             │
-                             ▼
-                       AUP SCORE
-                         0–100
-                             │
-                             ▼
-                    ┌──────────────────┐
-                    │   AUP Guard      │
-                    │                  │
-                    │ Cost Limit       │
-                    │ Risk Check       │
-                    └────────┬─────────┘
-                             │
-                       ALLOW / BLOCK
-
-
-
-VIBES STRUCTURE:
-
-1. AUPRegistry.sol 
-
-The first function simply registers an agent.
-Minimum data:
-
-agentId
-agentAddress
-owner
-category
-active
-registeredAt
-
-ex: Agent #001
-Research Agent
-Owner: 0x...
-Status: Active
-
-
-2. AUPReputation.sol
-
-This is the core of the AUP. The contract stores statistics:
-
-totalTasks
-successfulTasks
-failedTasks
-totalCost
-utilityScore
-efficiencyScore
-reliabilityScore
-reputationScore
-aupScore
-
-3. AUP SCORE:
-
-40% Utility
-30% Efficiency
-20% Reliability
-10% Reputation
-
-All values are normalized to a 0–100 scale.
-Example: Utility 95 
-Efficiency 88 Reliability 94 Reputation 90
-AUP Score = 92
-
-
-4. AUPGuard.sol
-
-This component handles economic safety. 
-Users can specify: Maximum budget: $1 Maximum cost/task: $0.10 
-Minimum AUP Score: 70 Then, before an agent executes a paid action: AUP Score >= 70? │ YES │ Cost <= user limit? │ YES │ ALLOW Otherwise: BLOCK Thus, AUP does more than just provide a rating; it serves as a layer of cost protection.
-
-5.Data flow 
-
-A simple example: 
-The user runs Agent #001.
-Task
-Cost = $0.02
-Result = Success
-
-The evaluator submits the results: recordExecution( agentId, success, cost, utility ) The contract updates: 
-Tasks: 101 → 102 Success: 94 → 95 Total Cost: +$0.02 Then, the score is recalculated. 
-AUP Score 91 → 92
-
-
-6.Anti-manipulation 
-
-(MVP version) For the MVP, the following measures suffice: Agents cannot alter their own statistics. Only evaluators or authorized reporters can submit data. Each execution has a unique ID. Executions cannot be recorded twice. Statistics are calculated based on execution history. Feedback carries limited weight. New agents do not immediately receive a high score.
-
+^•••^
 
