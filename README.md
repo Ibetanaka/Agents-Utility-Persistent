@@ -26,6 +26,10 @@ AUP provides:
 
 ---
 
+
+
+
+
 ## Smart Contracts
 
 | Contract              | Description                                      |
@@ -42,6 +46,8 @@ AUP Score = (Utility × 40%) + (Efficiency × 30%) + (Reliability × 20%) + (Rep
 - New agents receive a cold-start penalty until they complete at least 3 tasks
 
 ---
+
+
 
 ## Architecture
 
@@ -68,6 +74,8 @@ AUP Guard             ← canExecute() → ALLOW / BLOCK
 
 
 ---
+
+
 
 ## Quick Start
 
@@ -113,15 +121,21 @@ npx hardhat verify --network base-sepolia <REPUTATION_ADDRESS> <REGISTRY_ADDRESS
 npx hardhat verify --network base-sepolia <GUARD_ADDRESS> <REGISTRY_ADDRESS> <REPUTATION_ADDRESS>
 
 
+
+
 How to Use After Deployment:
 
 1. Register an Agent
 
 uint256 agentId = registry.registerAgent(agentAddress, "Research");
 
+
+
 2. Authorize an Evaluator (owner only)
 
 reputation.setEvaluator(evaluatorAddress, true);
+
+
 
 3. Record an Execution (evaluators only)
 
@@ -134,13 +148,17 @@ reputation.recordExecution(
 );
 
 
+
 4. User configures Guard
+
 
 guard.configureGuard(
     1000000,   // maxBudget
     50000,     // maxCostPerTask
     70         // minAupScore
 );
+
+
 
 5. Check before execution
 
@@ -162,12 +180,16 @@ Project Structure
 └── README.md
 
 
+
+
+
 License
 MIT
 
 
 
+
+
 Goal: Become the economic reputation and safety infrastructure for autonomous AI agents on Base and beyond.
 
-^•••^
 
